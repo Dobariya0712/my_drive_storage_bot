@@ -9,8 +9,6 @@ import { apiSuccess, apiError, handleApiError } from "@/lib/api";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-export const dynamic = "force-dynamic";
-
 const updateUserSchema = z.object({
   storageQuotaBytes: z.number().positive().optional(),
   role: z.enum(["user", "admin"]).optional(),
