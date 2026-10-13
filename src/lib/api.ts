@@ -16,6 +16,7 @@ export function apiError(message: string, status = 400, details?: unknown): Next
 }
 
 export function handleApiError(err: unknown): NextResponse {
+  console.error("[API Error]", err);
   if (err instanceof ZodError) {
     return apiError("Validation failed", 400, err.flatten());
   }
@@ -29,12 +30,7 @@ export function handleApiError(err: unknown): NextResponse {
     if (err.message === "NOT_FOUND") {
       return apiError("Not found", 404);
     }
-    // Don't leak internal error details in production
-    const isProduction = process.env.NODE_ENV === "production";
-    return apiError(
-      isProduction ? "An internal error occurred" : err.message,
-      500
-    );
+    return apiError(err.message || "An error occurred", 500);
   }
   return apiError("An unexpected error occurred", 500);
 }

@@ -12,6 +12,13 @@ import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return apiError(
+        "DATABASE_URL is not configured in Vercel Environment Variables. Please set DATABASE_URL in Vercel project settings.",
+        500
+      );
+    }
+
     // Rate limit: max 10 login attempts per IP per 15 minutes
     const ip = request.headers.get("x-forwarded-for") || "unknown";
     if (!rateLimit(ip, 10, 15 * 60 * 1000)) {

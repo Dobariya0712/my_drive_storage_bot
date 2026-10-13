@@ -7,7 +7,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { formatBytes } from "@/lib/utils";
 import {
   Cloud, LayoutDashboard, FolderOpen, Image, Video, FileText,
-  Share2, Trash2, Settings, LogOut, ChevronRight,
+  Share2, Trash2, Settings, LogOut, ChevronRight, ShieldCheck,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -78,7 +78,28 @@ export function Sidebar({ mobile, onClose }: SidebarProps) {
           ))}
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
+        {user?.role === "admin" && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <Link
+              href="/admin"
+              onClick={onClose}
+              className={clsx(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group",
+                pathname === "/admin"
+                  ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25"
+                  : "text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4 flex-shrink-0 text-purple-400 group-hover:text-purple-300" />
+              <span className="flex-1">Admin Panel</span>
+              <span className="text-[10px] uppercase tracking-wider font-extrabold bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-md">
+                Admin
+              </span>
+            </Link>
+          </div>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-border">
           <Link
             href="/settings"
             onClick={onClose}
