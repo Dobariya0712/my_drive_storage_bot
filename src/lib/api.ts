@@ -30,7 +30,10 @@ export function handleApiError(err: unknown): NextResponse {
     if (err.message === "NOT_FOUND") {
       return apiError("Not found", 404);
     }
-    return apiError(err.message || "An error occurred", 500);
+    const cause = (err as any).cause;
+    const causeMsg = cause?.message || (typeof cause === "string" ? cause : (cause ? JSON.stringify(cause) : ""));
+    const fullMsg = causeMsg ? `${err.message} [Cause: ${causeMsg}]` : (err.message || "An error occurred");
+    return apiError(fullMsg, 500, { cause: causeMsg });
   }
   return apiError("An unexpected error occurred", 500);
 }
