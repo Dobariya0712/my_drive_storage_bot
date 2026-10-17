@@ -46,10 +46,8 @@ export async function POST(request: NextRequest) {
       return apiError("An account with this email already exists.", 409);
     }
 
-    // Only designated owner emails are automatically admins upon registration; all other new users register as standard "user"
-    const isOwnerEmail =
-      email.toLowerCase() === "dobariya2008@gmail.com" ||
-      email.toLowerCase() === "dishant7122008@gmail.com";
+    // Only dobariya2008@gmail.com is automatically admin; all other users register as standard "user"
+    const isOwnerEmail = email.toLowerCase().trim() === "dobariya2008@gmail.com";
     const role: "admin" | "user" = isOwnerEmail ? "admin" : "user";
 
     const passwordHash = await hashPassword(password);

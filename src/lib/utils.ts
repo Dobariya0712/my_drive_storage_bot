@@ -17,9 +17,7 @@ export function formatBytes(bytes: number): string {
 }
 
 export function isUserAdmin(user?: { role?: string; email?: string } | null): boolean {
-  if (!user) return false;
-  if (user.role === "admin") return true;
-  const email = user.email?.toLowerCase();
-  return email === "dobariya2008@gmail.com" || email === "dishant7122008@gmail.com";
+  if (!user || !user.email) return false;
+  return user.email.toLowerCase().trim() === "dobariya2008@gmail.com";
 }
 

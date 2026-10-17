@@ -53,13 +53,13 @@ export async function POST(request: NextRequest) {
     // Reset rate limiter on successful authentication
     resetRateLimit(ip);
 
-    const isOwner =
-      user.email.toLowerCase() === "dobariya2008@gmail.com" ||
-      user.email.toLowerCase() === "dishant7122008@gmail.com";
-    const effectiveRole: "admin" | "user" = (isOwner || user.role === "admin") ? "admin" : "user";
+    const isOwner = user.email.toLowerCase().trim() === "dobariya2008@gmail.com";
+    const effectiveRole: "admin" | "user" = isOwner ? "admin" : "user";
 
     if (isOwner && user.role !== "admin") {
       await db.update(users).set({ role: "admin" }).where(eq(users.id, user.id));
+    } else if (!isOwner && user.role === "admin") {
+      await db.update(users).set({ role: "user" }).where(eq(users.id, user.id));
     }
 
     const session = await getSession();

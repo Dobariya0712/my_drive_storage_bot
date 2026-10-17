@@ -31,7 +31,8 @@ export async function GET() {
       return apiError("User not found", 404);
     }
 
-    const effectiveRole: "admin" | "user" = (user.role === "admin" || user.email.toLowerCase() === "dobariya2008@gmail.com" || user.email.toLowerCase() === "dishant7122008@gmail.com") ? "admin" : "user";
+    const effectiveRole: "admin" | "user" =
+      user.email.toLowerCase().trim() === "dobariya2008@gmail.com" ? "admin" : "user";
 
     return apiSuccess({
       ...user,
