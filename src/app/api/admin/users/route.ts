@@ -8,13 +8,15 @@ import { getSession } from "@/lib/auth/session";
 import { apiSuccess, apiError, handleApiError } from "@/lib/api";
 import { desc } from "drizzle-orm";
 
+import { isUserAdmin } from "@/lib/utils";
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session.user) {
       return apiError("Unauthorized", 401);
     }
-    if (session.user.role !== "admin") {
+    if (!isUserAdmin(session.user)) {
       return apiError("Forbidden: Admin access required", 403);
     }
 

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { users, files } from "@/lib/db/schema";
 import { getSession } from "@/lib/auth/session";
 import { apiSuccess, apiError, handleApiError } from "@/lib/api";
+import { isUserAdmin } from "@/lib/utils";
 import { sql, isNull } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (!session.user) {
       return apiError("Unauthorized", 401);
     }
-    if (session.user.role !== "admin") {
+    if (!isUserAdmin(session.user)) {
       return apiError("Forbidden: Admin access required", 403);
     }
 

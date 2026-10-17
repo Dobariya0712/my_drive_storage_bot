@@ -40,3 +40,7 @@ export async function requireAuth(): Promise<SessionUser> {
   }
   return session.user;
 }
+
+export { isUserAdmin } from "@/lib/utils";
+
+

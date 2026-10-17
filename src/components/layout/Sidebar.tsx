@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { formatBytes } from "@/lib/utils";
+import { formatBytes, isUserAdmin } from "@/lib/utils";
 import {
   Cloud, LayoutDashboard, FolderOpen, Image, Video, FileText,
   Share2, Trash2, Settings, LogOut, ChevronRight, ShieldCheck,
@@ -78,7 +78,7 @@ export function Sidebar({ mobile, onClose }: SidebarProps) {
           ))}
         </div>
 
-        {user?.role === "admin" && (
+        {isUserAdmin(user) && (
           <div className="mt-4 pt-4 border-t border-border">
             <Link
               href="/admin"

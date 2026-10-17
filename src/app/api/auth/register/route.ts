@@ -46,17 +46,11 @@ export async function POST(request: NextRequest) {
       return apiError("An account with this email already exists.", 409);
     }
 
-    // Automatically make the first user or project owner an admin
-    const userCount = await db
-      .select({ id: users.id })
-      .from(users)
-      .limit(1);
-
-    const isFirstUser = userCount.length === 0;
+    // Only designated owner emails are automatically admins upon registration; all other new users register as standard "user"
     const isOwnerEmail =
-      email.toLowerCase().includes("dishant7122008@gmail.com") ||
-      email.toLowerCase().includes("dobariya2008@gmail.com");
-    const role: "admin" | "user" = (isFirstUser || isOwnerEmail) ? "admin" : "user";
+      email.toLowerCase() === "dobariya2008@gmail.com" ||
+      email.toLowerCase() === "dishant7122008@gmail.com";
+    const role: "admin" | "user" = isOwnerEmail ? "admin" : "user";
 
     const passwordHash = await hashPassword(password);
     const userId = uuidv4();

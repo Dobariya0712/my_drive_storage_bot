@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { getSession } from "@/lib/auth/session";
 import { apiSuccess, apiError, handleApiError } from "@/lib/api";
+import { isUserAdmin } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -25,7 +26,7 @@ export async function PATCH(
   try {
     const session = await getSession();
     if (!session.user) return apiError("Unauthorized", 401);
-    if (session.user.role !== "admin") return apiError("Forbidden: Admin access required", 403);
+    if (!isUserAdmin(session.user)) return apiError("Forbidden: Admin access required", 403);
 
     const { id } = await params;
     const body = await request.json();
@@ -69,7 +70,7 @@ export async function DELETE(
   try {
     const session = await getSession();
     if (!session.user) return apiError("Unauthorized", 401);
-    if (session.user.role !== "admin") return apiError("Forbidden: Admin access required", 403);
+    if (!isUserAdmin(session.user)) return apiError("Forbidden: Admin access required", 403);
 
     const { id } = await params;
     if (session.user.id === id) {

@@ -53,14 +53,23 @@ export async function POST(request: NextRequest) {
     // Reset rate limiter on successful authentication
     resetRateLimit(ip);
 
+    const isOwner =
+      user.email.toLowerCase() === "dobariya2008@gmail.com" ||
+      user.email.toLowerCase() === "dishant7122008@gmail.com";
+    const effectiveRole: "admin" | "user" = (isOwner || user.role === "admin") ? "admin" : "user";
+
+    if (isOwner && user.role !== "admin") {
+      await db.update(users).set({ role: "admin" }).where(eq(users.id, user.id));
+    }
+
     const session = await getSession();
-    session.user = { id: user.id, email: user.email, role: user.role };
+    session.user = { id: user.id, email: user.email, role: effectiveRole };
     await session.save();
 
     return apiSuccess({
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: effectiveRole,
     });
   } catch (err) {
     return handleApiError(err);

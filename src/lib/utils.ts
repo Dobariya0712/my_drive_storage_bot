@@ -15,3 +15,11 @@ export function formatBytes(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 }
+
+export function isUserAdmin(user?: { role?: string; email?: string } | null): boolean {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  const email = user.email?.toLowerCase();
+  return email === "dobariya2008@gmail.com" || email === "dishant7122008@gmail.com";
+}
+
