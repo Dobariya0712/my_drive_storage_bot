@@ -10,7 +10,11 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 const updateUserSchema = z.object({
-  storageQuotaBytes: z.number().positive().optional(),
+  storageQuotaBytes: z
+    .number()
+    .positive()
+    .max(Number.MAX_SAFE_INTEGER, "Storage quota exceeds maximum allowed limit")
+    .optional(),
   role: z.enum(["user", "admin"]).optional(),
 });
 

@@ -33,7 +33,7 @@ export const users = pgTable(
     role: userRoleEnum("role").notNull().default("user"),
     storageQuotaBytes: bigint("storage_quota_bytes", { mode: "number" })
       .notNull()
-      .default(1073741824), // 1 GB default
+      .default(1099511627776), // 1 TB default
     storageUsedBytes: bigint("storage_used_bytes", { mode: "number" })
       .notNull()
       .default(0),

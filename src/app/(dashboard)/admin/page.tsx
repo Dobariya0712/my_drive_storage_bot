@@ -527,6 +527,10 @@ export default function AdminPage() {
                       toast("Please enter a valid GB amount", "error");
                       return;
                     }
+                    if (gb > 1000000) {
+                      toast("Maximum quota is 1,000,000 GB", "error");
+                      return;
+                    }
                     handleSaveQuota(Math.round(gb * 1024 * 1024 * 1024));
                   }}
                   disabled={submittingQuota || !customQuotaGB}

@@ -18,7 +18,8 @@ export function apiError(message: string, status = 400, details?: unknown): Next
 export function handleApiError(err: unknown): NextResponse {
   console.error("[API Error]", err);
   if (err instanceof ZodError) {
-    return apiError("Validation failed", 400, err.flatten());
+    const firstIssue = err.issues?.[0]?.message || "Validation failed";
+    return apiError(firstIssue, 400, err.flatten());
   }
   if (err instanceof Error) {
     if (err.message === "UNAUTHORIZED") {
@@ -30,6 +31,7 @@ export function handleApiError(err: unknown): NextResponse {
     if (err.message === "NOT_FOUND") {
       return apiError("Not found", 404);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cause = (err as any).cause;
     const causeMsg = cause?.message || (typeof cause === "string" ? cause : (cause ? JSON.stringify(cause) : ""));
     const fullMsg = causeMsg ? `${err.message} [Cause: ${causeMsg}]` : (err.message || "An error occurred");
@@ -46,6 +48,11 @@ export function rateLimit(
   maxRequests: number,
   windowMs: number
 ): boolean {
+  // Do not rate limit in development or test environments
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+
   const now = Date.now();
   const existing = rateLimitStore.get(ip);
 
@@ -60,4 +67,8 @@ export function rateLimit(
 
   existing.count++;
   return true; // allowed
+}
+
+export function resetRateLimit(ip: string): void {
+  rateLimitStore.delete(ip);
 }

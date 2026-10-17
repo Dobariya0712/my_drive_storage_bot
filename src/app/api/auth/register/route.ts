@@ -7,7 +7,7 @@ import { users } from "@/lib/db/schema";
 import { hashPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
 import { registerSchema } from "@/lib/validations";
-import { apiSuccess, apiError, handleApiError, rateLimit } from "@/lib/api";
+import { apiSuccess, apiError, handleApiError, rateLimit, resetRateLimit } from "@/lib/api";
 import { DEFAULT_QUOTA_BYTES } from "@/lib/quota";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
@@ -21,9 +21,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limit: max 10 registrations per IP per 15 minutes
-    const ip = request.headers.get("x-forwarded-for") || "unknown";
-    if (!rateLimit(ip, 10, 15 * 60 * 1000)) {
+    // Rate limit: max 15 registrations per IP per 15 minutes
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      request.headers.get("x-real-ip") ||
+      request.headers.get("cf-connecting-ip") ||
+      "127.0.0.1";
+
+    if (!rateLimit(ip, 15, 15 * 60 * 1000)) {
       return apiError("Too many registration attempts. Please try again later.", 429);
     }
 
@@ -48,7 +53,9 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     const isFirstUser = userCount.length === 0;
-    const isOwnerEmail = email.toLowerCase().includes("dishant7122008@gmail.com");
+    const isOwnerEmail =
+      email.toLowerCase().includes("dishant7122008@gmail.com") ||
+      email.toLowerCase().includes("dobariya2008@gmail.com");
     const role: "admin" | "user" = (isFirstUser || isOwnerEmail) ? "admin" : "user";
 
     const passwordHash = await hashPassword(password);
@@ -62,6 +69,9 @@ export async function POST(request: NextRequest) {
       storageQuotaBytes: DEFAULT_QUOTA_BYTES,
       storageUsedBytes: 0,
     });
+
+    // Reset rate limiter on successful registration
+    resetRateLimit(ip);
 
     // Create session
     const session = await getSession();

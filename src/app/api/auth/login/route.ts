@@ -7,7 +7,7 @@ import { users } from "@/lib/db/schema";
 import { verifyPassword } from "@/lib/auth/password";
 import { getSession } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validations";
-import { apiSuccess, apiError, handleApiError, rateLimit } from "@/lib/api";
+import { apiSuccess, apiError, handleApiError, rateLimit, resetRateLimit } from "@/lib/api";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
@@ -19,9 +19,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limit: max 10 login attempts per IP per 15 minutes
-    const ip = request.headers.get("x-forwarded-for") || "unknown";
-    if (!rateLimit(ip, 10, 15 * 60 * 1000)) {
+    // Rate limit: max 15 login attempts per IP per 15 minutes
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      request.headers.get("x-real-ip") ||
+      request.headers.get("cf-connecting-ip") ||
+      "127.0.0.1";
+
+    if (!rateLimit(ip, 15, 15 * 60 * 1000)) {
       return apiError("Too many login attempts. Please try again later.", 429);
     }
 
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Constant-time failure to prevent user enumeration
     if (!user) {
-      await verifyPassword("$argon2id$placeholder", password).catch(() => {});
+      await verifyPassword("scrypt:0000000000000000:00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", password).catch(() => {});
       return apiError("Invalid email or password.", 401);
     }
 
@@ -44,6 +49,9 @@ export async function POST(request: NextRequest) {
     if (!valid) {
       return apiError("Invalid email or password.", 401);
     }
+
+    // Reset rate limiter on successful authentication
+    resetRateLimit(ip);
 
     const session = await getSession();
     session.user = { id: user.id, email: user.email, role: user.role };

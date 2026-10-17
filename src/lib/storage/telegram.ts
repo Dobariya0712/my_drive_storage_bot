@@ -7,7 +7,7 @@
 
 import { StorageAdapter, UploadResult } from "./adapter";
 
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB (Bot API hard limit)
+const MAX_UPLOAD_BYTES = parseInt(process.env.MAX_FILE_SIZE_BYTES || "2147483648", 10); // 2 GB
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -43,6 +43,7 @@ interface TelegramFile {
 export class TelegramStorageService implements StorageAdapter {
   private chatId: string;
   private botToken: string;
+  private apiBase: string;
 
   constructor() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -56,11 +57,12 @@ export class TelegramStorageService implements StorageAdapter {
 
     this.botToken = token;
     this.chatId = chatId;
+    this.apiBase = (process.env.TELEGRAM_API_URL || "https://api.telegram.org").replace(/\/$/, "");
   }
 
   /**
    * Upload a file buffer to the private Telegram channel.
-   * Enforces the 50 MB Bot API limit.
+   * Enforces the MAX_UPLOAD_BYTES limit (2 GB).
    */
   async uploadFile(
     buffer: Buffer,
@@ -69,7 +71,7 @@ export class TelegramStorageService implements StorageAdapter {
   ): Promise<UploadResult> {
     if (buffer.length > MAX_UPLOAD_BYTES) {
       throw new Error(
-        `File exceeds the Telegram Bot API 50 MB upload limit. Size: ${(buffer.length / 1024 / 1024).toFixed(1)} MB`
+        `File exceeds the ${(MAX_UPLOAD_BYTES / (1024 * 1024 * 1024)).toFixed(0)} GB upload limit. Size: ${(buffer.length / 1024 / 1024).toFixed(1)} MB`
       );
     }
 
@@ -87,7 +89,7 @@ export class TelegramStorageService implements StorageAdapter {
         formData.append("document", blob, filename);
 
         const res = await fetch(
-          `https://api.telegram.org/bot${this.botToken}/sendDocument`,
+          `${this.apiBase}/bot${this.botToken}/sendDocument`,
           {
             method: "POST",
             body: formData,
@@ -144,7 +146,7 @@ export class TelegramStorageService implements StorageAdapter {
    */
   async getFileUrl(telegramFileId: string): Promise<string> {
     const res = await fetch(
-      `https://api.telegram.org/bot${this.botToken}/getFile?file_id=${encodeURIComponent(telegramFileId)}`
+      `${this.apiBase}/bot${this.botToken}/getFile?file_id=${encodeURIComponent(telegramFileId)}`
     );
 
     const data: TelegramResponse<TelegramFile> = await res.json();
@@ -157,7 +159,7 @@ export class TelegramStorageService implements StorageAdapter {
 
     // For all files (bot API provides path)
     // The token is embedded server-side — never sent directly to untrusted client
-    return `https://api.telegram.org/file/bot${this.botToken}/${data.result.file_path}`;
+    return `${this.apiBase}/file/bot${this.botToken}/${data.result.file_path}`;
   }
 
   /**
@@ -169,7 +171,7 @@ export class TelegramStorageService implements StorageAdapter {
   ): Promise<boolean> {
     try {
       const res = await fetch(
-        `https://api.telegram.org/bot${this.botToken}/deleteMessage`,
+        `${this.apiBase}/bot${this.botToken}/deleteMessage`,
         {
           method: "POST",
           headers: {

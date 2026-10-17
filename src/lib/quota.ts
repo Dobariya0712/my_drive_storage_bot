@@ -6,10 +6,10 @@ import { users } from "./db/schema";
 import { eq, sql } from "drizzle-orm";
 
 export const DEFAULT_QUOTA_BYTES =
-  parseInt(process.env.DEFAULT_QUOTA_BYTES || "1073741824", 10); // 1 GB
+  parseInt(process.env.DEFAULT_QUOTA_BYTES || "1099511627776", 10); // 1 TB
 
 export const MAX_FILE_SIZE_BYTES =
-  parseInt(process.env.MAX_FILE_SIZE_BYTES || "52428800", 10); // 50 MB
+  parseInt(process.env.MAX_FILE_SIZE_BYTES || "2147483648", 10); // 2 GB
 
 /**
  * Check if a user has enough quota for a given upload size.

@@ -91,7 +91,7 @@ export function UploadZone({ folderId, onUploadComplete }: UploadZoneProps) {
       for (const file of fileList) {
         if (file.size > MAX_FILE_SIZE_BYTES) {
           toast(
-            `${file.name} exceeds the 50 MB limit (${formatBytes(file.size)})`,
+            `${file.name} exceeds the ${formatBytes(MAX_FILE_SIZE_BYTES)} limit (${formatBytes(file.size)})`,
             "error"
           );
           continue;

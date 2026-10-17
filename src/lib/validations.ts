@@ -6,7 +6,11 @@ import { MAX_FILE_SIZE_BYTES } from "./quota";
 
 // ─── Auth ────────────────────────────────────────────────────
 export const registerSchema = z.object({
-  email: z.string().email("Invalid email address").toLowerCase(),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Invalid email address"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -14,7 +18,11 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address").toLowerCase(),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -119,9 +127,9 @@ export function validateFileSize(sizeBytes: number): void {
     throw new Error("File is empty.");
   }
   if (sizeBytes > MAX_FILE_SIZE_BYTES) {
-    const maxMB = (MAX_FILE_SIZE_BYTES / 1024 / 1024).toFixed(0);
+    const maxGB = (MAX_FILE_SIZE_BYTES / (1024 * 1024 * 1024)).toFixed(0);
     throw new Error(
-      `File size (${(sizeBytes / 1024 / 1024).toFixed(1)} MB) exceeds the maximum allowed size of ${maxMB} MB.`
+      `File size (${(sizeBytes / 1024 / 1024).toFixed(1)} MB) exceeds the maximum allowed size of ${maxGB} GB.`
     );
   }
 }

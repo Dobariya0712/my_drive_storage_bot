@@ -17,20 +17,7 @@ try {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  if (argon2Module) {
-    try {
-      return await argon2Module.hash(password, {
-        type: argon2Module.argon2id,
-        memoryCost: 65536,
-        timeCost: 3,
-        parallelism: 2,
-      });
-    } catch {
-      // Fall through to native crypto scrypt
-    }
-  }
-
-  // Pure Node.js crypto scrypt: zero native C++ addon dependencies, 100% serverless safe
+  // Pure Node.js crypto scrypt: zero native C++ addon dependencies, 100% serverless safe across all environments
   const salt = randomBytes(16).toString("hex");
   const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
   return `scrypt:${salt}:${derivedKey.toString("hex")}`;
@@ -47,6 +34,7 @@ export async function verifyPassword(
       const [, salt, key] = parts;
       const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
       const keyBuffer = Buffer.from(key, "hex");
+      if (derivedKey.length !== keyBuffer.length) return false;
       return timingSafeEqual(derivedKey, keyBuffer);
     }
 

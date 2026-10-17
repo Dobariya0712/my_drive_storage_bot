@@ -1,7 +1,7 @@
 // src/app/(auth)/register/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -10,7 +10,7 @@ import { Cloud, Lock, Mail, Eye, EyeOff, Loader2, User } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { refresh } = useAuth();
+  const { user, loading: authLoading, refresh } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,18 +18,35 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/files");
+    }
+  }, [user, authLoading, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      toast("Please enter a valid email address.", "error");
+      return;
+    }
+    if (password.length < 8) {
+      toast("Password must be at least 8 characters", "error");
+      return;
+    }
     if (password !== confirmPassword) {
       toast("Passwords do not match", "error");
       return;
     }
+
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -38,7 +55,8 @@ export default function RegisterPage() {
       }
       await refresh();
       toast("Account created successfully!", "success");
-      router.push("/");
+      // Clean page transition to initialize session and avoid client cache mismatches
+      window.location.href = "/files";
     } catch {
       toast("Network error. Please try again.", "error");
     } finally {
