@@ -197,7 +197,7 @@ function FilesContent() {
           </button>
           <button
             onClick={() => setUploadOpen(!uploadOpen)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-theme-gradient hover:opacity-90 text-white text-sm font-semibold transition-all shadow-md shadow-theme-glow active:scale-95"
           >
             <Upload className="w-4 h-4" />
             Upload File
@@ -296,7 +296,7 @@ function FilesContent() {
               placeholder="Folder name"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
-              className="w-full px-3 py-2 bg-muted border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              className="w-full px-3 py-2 bg-muted border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary mb-4"
             />
             <div className="flex justify-end gap-2">
               <button
@@ -308,7 +308,7 @@ function FilesContent() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
+                className="px-4 py-2 text-sm bg-theme-gradient hover:opacity-90 text-white rounded-xl font-medium shadow-theme-glow"
               >
                 Create
               </button>
@@ -328,7 +328,7 @@ function FilesContent() {
               <div
                 key={folder.id}
                 onClick={() => enterFolder(folder)}
-                className="group flex items-center justify-between p-3.5 rounded-2xl bg-card border border-border hover:border-blue-500/50 hover:shadow-sm cursor-pointer transition-all"
+                className="group flex items-center justify-between p-3.5 rounded-2xl bg-card border border-border hover:border-theme-accent hover:shadow-sm cursor-pointer transition-all"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
@@ -371,7 +371,7 @@ function FilesContent() {
             </p>
             <button
               onClick={() => setUploadOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl inline-flex items-center gap-2"
+              className="px-5 py-2.5 bg-theme-gradient hover:opacity-90 text-white text-sm font-semibold rounded-xl inline-flex items-center gap-2 shadow-md shadow-theme-glow active:scale-95 transition-all"
             >
               <Upload className="w-4 h-4" /> Upload Now
             </button>
@@ -379,13 +379,13 @@ function FilesContent() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {files.map((file) => (
-              <FileCard key={file.id} file={file} onUpdate={fetchData} />
+              <FileCard key={file.id} file={file} files={files} onUpdate={fetchData} />
             ))}
           </div>
         ) : (
           <div className="space-y-2">
             {files.map((file) => (
-              <FileCard key={file.id} file={file} onUpdate={fetchData} compact />
+              <FileCard key={file.id} file={file} files={files} onUpdate={fetchData} compact />
             ))}
           </div>
         )}

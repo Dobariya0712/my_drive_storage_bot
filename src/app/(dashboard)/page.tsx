@@ -58,8 +58,8 @@ export default function DashboardPage() {
         {/* Total Files */}
         <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <Files className="w-5 h-5 text-blue-500" />
+            <div className="w-10 h-10 rounded-xl bg-theme-soft text-theme-accent flex items-center justify-center">
+              <Files className="w-5 h-5 text-theme-accent" />
             </div>
             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Files</span>
           </div>
@@ -70,8 +70,8 @@ export default function DashboardPage() {
         {/* Storage Used */}
         <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <HardDrive className="w-5 h-5 text-purple-500" />
+            <div className="w-10 h-10 rounded-xl bg-theme-soft text-theme-accent flex items-center justify-center">
+              <HardDrive className="w-5 h-5 text-theme-accent" />
             </div>
             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Storage</span>
           </div>
@@ -85,7 +85,7 @@ export default function DashboardPage() {
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-purple-500 rounded-full transition-all duration-700"
+                className="h-full bg-theme-gradient rounded-full transition-all duration-700"
                 style={{ width: `${usedPercent}%` }}
               />
             </div>
@@ -95,8 +95,8 @@ export default function DashboardPage() {
         {/* Remaining Quota */}
         <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-green-500" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-500" />
             </div>
             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Available</span>
           </div>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
       {/* Quick Upload */}
       <div className="bg-card border border-border rounded-2xl p-6">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Upload className="w-5 h-5 text-blue-500" />
+          <Upload className="w-5 h-5 text-theme-accent" />
           Quick Upload
         </h2>
         <UploadZone onUploadComplete={fetchData} />
@@ -127,7 +127,7 @@ export default function DashboardPage() {
           </h2>
           <Link
             href="/files"
-            className="text-sm text-blue-500 hover:text-blue-400 font-medium flex items-center gap-1 transition-colors"
+            className="text-sm text-theme-accent hover:underline font-medium flex items-center gap-1 transition-colors"
           >
             View all <ChevronRight className="w-4 h-4" />
           </Link>
@@ -148,7 +148,12 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {recentFiles.map((file) => (
-              <FileCard key={file.id} file={file} onUpdate={fetchData} compact />
+              <FileCard
+                key={file.id}
+                file={file}
+                files={recentFiles}
+                onUpdate={fetchData}
+              />
             ))}
           </div>
         )}

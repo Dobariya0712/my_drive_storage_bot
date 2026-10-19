@@ -75,7 +75,7 @@ export default function TrashPage() {
           <button
             onClick={handleEmptyTrash}
             disabled={clearing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-sm font-semibold transition-all shadow-md shadow-rose-600/25 active:scale-95 disabled:opacity-50"
           >
             {clearing ? (
               <RefreshCw className="w-4 h-4 animate-spin" />

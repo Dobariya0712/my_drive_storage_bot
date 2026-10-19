@@ -149,8 +149,8 @@ export function UploadZone({ folderId, onUploadComplete }: UploadZoneProps) {
         onClick={() => fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
           isDragging
-            ? "border-blue-500 bg-blue-500/5 scale-[0.99]"
-            : "border-border hover:border-muted-foreground/40 bg-card hover:bg-muted/30"
+            ? "border-theme-accent bg-theme-soft scale-[0.99]"
+            : "border-border hover:border-theme-accent/50 bg-card hover:bg-accent/40"
         }`}
       >
         <input
@@ -165,7 +165,7 @@ export function UploadZone({ folderId, onUploadComplete }: UploadZoneProps) {
           }}
         />
         <div className="flex flex-col items-center justify-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+          <div className="w-12 h-12 rounded-2xl bg-theme-soft flex items-center justify-center text-theme-accent shadow-sm shadow-theme-glow">
             <Upload className="w-6 h-6" />
           </div>
           <div>
@@ -199,7 +199,7 @@ export function UploadZone({ folderId, onUploadComplete }: UploadZoneProps) {
                   {item.status === "uploading" && (
                     <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 transition-all duration-300 rounded-full"
+                        className="h-full bg-theme-gradient transition-all duration-300 rounded-full"
                         style={{ width: `${item.progress}%` }}
                       />
                     </div>
@@ -214,7 +214,7 @@ export function UploadZone({ folderId, onUploadComplete }: UploadZoneProps) {
 
               <div className="flex items-center gap-2 shrink-0">
                 {item.status === "uploading" && (
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                  <Loader2 className="w-4 h-4 animate-spin text-theme-accent" />
                 )}
                 {item.status === "success" && (
                   <CheckCircle2 className="w-4 h-4 text-green-500" />

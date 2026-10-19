@@ -206,7 +206,7 @@ export default function AdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-600/10 text-blue-500 border border-blue-500/20">
+            <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/30 shadow-sm shadow-purple-500/10">
               <Shield className="w-6 h-6" />
             </div>
             <div>
@@ -231,7 +231,7 @@ export default function AdminPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-card border border-border shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-600/10 text-blue-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-violet-500/15 text-violet-400 flex items-center justify-center flex-shrink-0 shadow-sm shadow-violet-500/15">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -293,7 +293,7 @@ export default function AdminPage() {
               placeholder="Search user by email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function AdminPage() {
               {loading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-500" />
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-theme-accent" />
                     Loading user records...
                   </td>
                 </tr>
@@ -338,14 +338,14 @@ export default function AdminPage() {
                       {/* User Email & Avatar */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-blue-600/20 text-blue-500 font-bold flex items-center justify-center text-sm flex-shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-theme-gradient text-white font-bold flex items-center justify-center text-sm flex-shrink-0 shadow-sm shadow-theme-glow">
                             {u.email[0].toUpperCase()}
                           </div>
                           <div>
                             <p className="font-medium text-foreground flex items-center gap-2">
                               {u.email}
                               {isCurrent && (
-                                <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-semibold border border-blue-500/20">
+                                <span className="text-[10px] bg-theme-soft text-theme-accent px-2.5 py-0.5 rounded-full font-semibold border border-theme-accent/30">
                                   You
                                 </span>
                               )}

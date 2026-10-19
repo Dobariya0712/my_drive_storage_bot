@@ -65,6 +65,10 @@ export async function GET(request: NextRequest, { params }: Params) {
       return apiError("File is not available", 400);
     }
 
+    const inline = request.nextUrl.searchParams.get("inline") === "true";
+    const dispositionType = inline ? "inline" : "attachment";
+    const disposition = `${dispositionType}; filename="${encodeURIComponent(file.originalName)}"`;
+
     const adapter = getStorageAdapter();
     const fileUrl = await adapter.getFileUrl(file.telegramFileId);
 
@@ -77,9 +81,9 @@ export async function GET(request: NextRequest, { params }: Params) {
       }
       return new NextResponse(new Uint8Array(buffer), {
         headers: {
-          "Content-Type": file.mimeType,
-          "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalName)}"`,
-          "Cache-Control": "no-store",
+          "Content-Type": file.mimeType || "application/octet-stream",
+          "Content-Disposition": disposition,
+          "Cache-Control": inline ? "public, max-age=3600" : "no-store",
         },
       });
     }
@@ -91,9 +95,9 @@ export async function GET(request: NextRequest, { params }: Params) {
 
     return new NextResponse(telegramResponse.body, {
       headers: {
-        "Content-Type": file.mimeType,
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalName)}"`,
-        "Cache-Control": "no-store",
+        "Content-Type": file.mimeType || "application/octet-stream",
+        "Content-Disposition": disposition,
+        "Cache-Control": inline ? "public, max-age=3600" : "no-store",
         "X-Content-Type-Options": "nosniff",
       },
     });

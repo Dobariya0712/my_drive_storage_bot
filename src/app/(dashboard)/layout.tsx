@@ -26,7 +26,7 @@ export default function DashboardLayout({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl bg-theme-gradient animate-pulse shadow-lg shadow-theme-glow" />
           <div className="h-4 w-32 skeleton" />
         </div>
       </div>
