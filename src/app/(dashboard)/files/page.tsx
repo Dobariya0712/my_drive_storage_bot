@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { FileRow, FolderRow } from "@/lib/db/schema";
 import { FileCard } from "@/components/dashboard/FileCard";
 import { UploadZone } from "@/components/dashboard/UploadZone";
+import { BatchActionBar } from "@/components/dashboard/BatchActionBar";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   FolderPlus,
@@ -19,6 +20,7 @@ import {
   Files,
   X,
   Trash2,
+  Check,
 } from "lucide-react";
 
 function FilesContent() {
@@ -90,6 +92,74 @@ function FilesContent() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [batchLoading, setBatchLoading] = useState(false);
+
+  // Clear selections when navigating folders or changing search/filter
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [currentFolderId, search, typeFilter]);
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const isAllSelected = files.length > 0 && selectedIds.length === files.length;
+
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(files.map((f) => f.id));
+    }
+  };
+
+  const handleClearSelection = () => setSelectedIds([]);
+
+  const selectedFiles = files.filter((f) => selectedIds.includes(f.id));
+  const totalSelectedBytes = selectedFiles.reduce((acc, f) => acc + f.sizeBytes, 0);
+
+  const handleBatchDownload = () => {
+    if (selectedFiles.length === 0) return;
+    toast(`Starting download of ${selectedFiles.length} file(s)...`, "info");
+    selectedFiles.forEach((file, index) => {
+      setTimeout(() => {
+        const a = document.createElement("a");
+        a.href = `/api/files/${file.id}/download`;
+        a.download = file.originalName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, index * 300);
+    });
+  };
+
+  const handleBatchTrash = async () => {
+    if (!confirm(`Move ${selectedIds.length} selected file(s) to trash?`)) return;
+    setBatchLoading(true);
+    try {
+      const res = await fetch("/api/files/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "trash", fileIds: selectedIds }),
+      });
+      if (res.ok) {
+        toast(`${selectedIds.length} file(s) moved to trash`, "success");
+        setSelectedIds([]);
+        fetchData();
+      } else {
+        const err = await res.json();
+        toast(err.error || "Failed to move files to trash", "error");
+      }
+    } catch {
+      toast("Error moving files to trash", "error");
+    } finally {
+      setBatchLoading(false);
+    }
+  };
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -352,9 +422,61 @@ function FilesContent() {
 
       {/* Files Section */}
       <div>
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Files ({files.length})
-        </h2>
+        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Files ({files.length})
+            </h2>
+
+            {files.length > 0 && (
+              <button
+                type="button"
+                onClick={handleToggleSelectAll}
+                className={`flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold border transition-all ${
+                  isAllSelected
+                    ? "border-theme-accent bg-theme-soft text-theme-accent shadow-xs"
+                    : selectedIds.length > 0
+                    ? "border-theme-accent/60 bg-theme-soft/50 text-foreground"
+                    : "border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+                title={isAllSelected ? "Deselect All files" : "Select All files"}
+              >
+                <div
+                  className={`w-4 h-4 rounded-md flex items-center justify-center transition-colors ${
+                    isAllSelected
+                      ? "bg-theme-gradient text-white shadow-xs"
+                      : selectedIds.length > 0
+                      ? "bg-theme-gradient text-white"
+                      : "border border-slate-400/80"
+                  }`}
+                >
+                  {isAllSelected ? (
+                    <Check className="w-3 h-3 stroke-[3]" />
+                  ) : selectedIds.length > 0 ? (
+                    <div className="w-2 h-0.5 bg-white rounded-full" />
+                  ) : null}
+                </div>
+                <span>
+                  {isAllSelected
+                    ? "Deselect All"
+                    : selectedIds.length > 0
+                    ? `Selected (${selectedIds.length}/${files.length})`
+                    : "Select All"}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+            >
+              Clear selection
+            </button>
+          )}
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -379,17 +501,47 @@ function FilesContent() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {files.map((file) => (
-              <FileCard key={file.id} file={file} files={files} onUpdate={fetchData} />
+              <FileCard
+                key={file.id}
+                file={file}
+                files={files}
+                onUpdate={fetchData}
+                selected={selectedIds.includes(file.id)}
+                onToggleSelect={handleToggleSelect}
+                selectionMode={selectedIds.length > 0}
+              />
             ))}
           </div>
         ) : (
           <div className="space-y-2">
             {files.map((file) => (
-              <FileCard key={file.id} file={file} files={files} onUpdate={fetchData} compact />
+              <FileCard
+                key={file.id}
+                file={file}
+                files={files}
+                onUpdate={fetchData}
+                compact
+                selected={selectedIds.includes(file.id)}
+                onToggleSelect={handleToggleSelect}
+                selectionMode={selectedIds.length > 0}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Floating Batch Actions Bar */}
+      <BatchActionBar
+        selectedCount={selectedIds.length}
+        totalCount={files.length}
+        totalBytes={totalSelectedBytes}
+        isAllSelected={isAllSelected}
+        onToggleSelectAll={handleToggleSelectAll}
+        onClearSelection={handleClearSelection}
+        onDownloadSelected={handleBatchDownload}
+        onDeleteSelected={handleBatchTrash}
+        loading={batchLoading}
+      />
     </div>
   );
 }

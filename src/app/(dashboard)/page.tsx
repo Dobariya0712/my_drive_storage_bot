@@ -7,9 +7,10 @@ import { formatBytes } from "@/lib/utils";
 import { FileRow } from "@/lib/db/schema";
 import { FileCard } from "@/components/dashboard/FileCard";
 import { UploadZone } from "@/components/dashboard/UploadZone";
+import { BatchActionBar } from "@/components/dashboard/BatchActionBar";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
-  Files, HardDrive, TrendingUp, Clock, Upload, ChevronRight
+  Files, HardDrive, TrendingUp, Clock, Upload, ChevronRight, Check
 } from "lucide-react";
 import Link from "next/link";
 
@@ -38,6 +39,70 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [batchLoading, setBatchLoading] = useState(false);
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const isAllSelected =
+    recentFiles.length > 0 && selectedIds.length === recentFiles.length;
+
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(recentFiles.map((f) => f.id));
+    }
+  };
+
+  const handleClearSelection = () => setSelectedIds([]);
+
+  const selectedFiles = recentFiles.filter((f) => selectedIds.includes(f.id));
+  const totalSelectedBytes = selectedFiles.reduce((acc, f) => acc + f.sizeBytes, 0);
+
+  const handleBatchDownload = () => {
+    if (selectedFiles.length === 0) return;
+    toast(`Starting download of ${selectedFiles.length} file(s)...`, "info");
+    selectedFiles.forEach((file, index) => {
+      setTimeout(() => {
+        const a = document.createElement("a");
+        a.href = `/api/files/${file.id}/download`;
+        a.download = file.originalName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, index * 300);
+    });
+  };
+
+  const handleBatchTrash = async () => {
+    if (!confirm(`Move ${selectedIds.length} selected file(s) to trash?`)) return;
+    setBatchLoading(true);
+    try {
+      const res = await fetch("/api/files/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "trash", fileIds: selectedIds }),
+      });
+      if (res.ok) {
+        toast(`${selectedIds.length} file(s) moved to trash`, "success");
+        setSelectedIds([]);
+        fetchData();
+      } else {
+        const err = await res.json();
+        toast(err.error || "Failed to move files to trash", "error");
+      }
+    } catch {
+      toast("Error moving files to trash", "error");
+    } finally {
+      setBatchLoading(false);
+    }
+  };
 
   const usedPercent = user
     ? Math.min(100, (user.storageUsedBytes / user.storageQuotaBytes) * 100)
@@ -120,17 +185,69 @@ export default function DashboardPage() {
 
       {/* Recent Files */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Clock className="w-5 h-5 text-muted-foreground" />
-            Recent Files
-          </h2>
-          <Link
-            href="/files"
-            className="text-sm text-theme-accent hover:underline font-medium flex items-center gap-1 transition-colors"
-          >
-            View all <ChevronRight className="w-4 h-4" />
-          </Link>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Clock className="w-5 h-5 text-muted-foreground" />
+              Recent Files
+            </h2>
+
+            {recentFiles.length > 0 && (
+              <button
+                type="button"
+                onClick={handleToggleSelectAll}
+                className={`flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold border transition-all ${
+                  isAllSelected
+                    ? "border-theme-accent bg-theme-soft text-theme-accent shadow-xs"
+                    : selectedIds.length > 0
+                    ? "border-theme-accent/60 bg-theme-soft/50 text-foreground"
+                    : "border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+                title={isAllSelected ? "Deselect All files" : "Select All files"}
+              >
+                <div
+                  className={`w-4 h-4 rounded-md flex items-center justify-center transition-colors ${
+                    isAllSelected
+                      ? "bg-theme-gradient text-white shadow-xs"
+                      : selectedIds.length > 0
+                      ? "bg-theme-gradient text-white"
+                      : "border border-slate-400/80"
+                  }`}
+                >
+                  {isAllSelected ? (
+                    <Check className="w-3 h-3 stroke-[3]" />
+                  ) : selectedIds.length > 0 ? (
+                    <div className="w-2 h-0.5 bg-white rounded-full" />
+                  ) : null}
+                </div>
+                <span>
+                  {isAllSelected
+                    ? "Deselect All"
+                    : selectedIds.length > 0
+                    ? `Selected (${selectedIds.length}/${recentFiles.length})`
+                    : "Select All"}
+                </span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {selectedIds.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearSelection}
+                className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+              >
+                Clear selection
+              </button>
+            )}
+            <Link
+              href="/files"
+              className="text-sm text-theme-accent hover:underline font-medium flex items-center gap-1 transition-colors"
+            >
+              View all <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {loading ? (
@@ -153,11 +270,27 @@ export default function DashboardPage() {
                 file={file}
                 files={recentFiles}
                 onUpdate={fetchData}
+                selected={selectedIds.includes(file.id)}
+                onToggleSelect={handleToggleSelect}
+                selectionMode={selectedIds.length > 0}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Floating Batch Actions Bar */}
+      <BatchActionBar
+        selectedCount={selectedIds.length}
+        totalCount={recentFiles.length}
+        totalBytes={totalSelectedBytes}
+        isAllSelected={isAllSelected}
+        onToggleSelectAll={handleToggleSelectAll}
+        onClearSelection={handleClearSelection}
+        onDownloadSelected={handleBatchDownload}
+        onDeleteSelected={handleBatchTrash}
+        loading={batchLoading}
+      />
     </div>
   );
 }

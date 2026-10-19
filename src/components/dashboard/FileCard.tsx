@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Copy,
   Check,
+  CheckSquare,
   Eye,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -32,6 +33,9 @@ interface FileCardProps {
   onUpdate?: () => void;
   compact?: boolean;
   isTrash?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (fileId: string) => void;
+  selectionMode?: boolean;
 }
 
 function getFileIcon(mimeType: string, filename: string) {
@@ -66,6 +70,9 @@ export function FileCard({
   onUpdate,
   compact = false,
   isTrash = false,
+  selected = false,
+  onToggleSelect,
+  selectionMode = false,
 }: FileCardProps) {
   const { toast } = useToast();
   const { openFile } = useFileViewer();
@@ -202,7 +209,34 @@ export function FileCard({
 
   return (
     <>
-      <div className="group relative bg-card border border-border rounded-2xl p-4 hover:shadow-md transition-all hover:border-border/80 flex flex-col justify-between">
+      <div
+        className={`group relative bg-card border rounded-2xl p-4 transition-all flex flex-col justify-between ${
+          selected
+            ? "ring-2 ring-theme-accent border-theme-accent bg-theme-soft/20 shadow-md shadow-theme-glow"
+            : "border-border hover:shadow-md hover:border-border/80"
+        }`}
+      >
+        {/* Selection Checkbox */}
+        {onToggleSelect && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect(file.id);
+            }}
+            className={`absolute top-3.5 right-11 z-20 w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+              selected
+                ? "bg-theme-gradient text-white shadow-xs ring-1 ring-white/30 scale-105"
+                : selectionMode
+                ? "border-2 border-slate-400/90 bg-background/80 hover:border-theme-accent text-transparent"
+                : "opacity-0 group-hover:opacity-100 border-2 border-slate-400/70 bg-background/90 hover:border-theme-accent hover:scale-105 text-transparent"
+            }`}
+            title={selected ? "Deselect item" : "Select item"}
+            aria-label={selected ? "Deselect item" : "Select item"}
+          >
+            {selected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : null}
+          </button>
+        )}
         <div>
           <div className="flex items-start justify-between gap-2 mb-3">
             {/* Thumbnail or File Icon */}
@@ -288,6 +322,19 @@ export function FileCard({
                     >
                       <Eye className="w-3.5 h-3.5 text-theme-accent" /> Preview / Open
                     </button>
+                    {onToggleSelect && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuOpen(false);
+                          onToggleSelect(file.id);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 text-left transition-colors font-medium text-slate-200"
+                      >
+                        <CheckSquare className="w-3.5 h-3.5 text-theme-accent" />{" "}
+                        {selected ? "Deselect" : "Select"}
+                      </button>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
